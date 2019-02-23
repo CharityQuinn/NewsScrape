@@ -2,59 +2,54 @@ var express = require("express");
 var logger = require("morgan");
 var mongoose = require("mongoose");
 
-// Our scraping tools
-// Axios is a promised-based http library, similar to jQuery's Ajax method
-// It works on the client and on the server
+//our scraping tools: axios and cheerio
 var axios = require("axios");
 var cheerio = require("cheerio");
 
-// Require all models
+//require all models
 var db = require("./models");
 
 var PORT = 3000;
 
-// Initialize Express
+//initialize express
 var app = express();
 
-// Configure middleware
-
-// Use morgan logger for logging requests
+//use morgan logger for logging requests
 app.use(logger("dev"));
-// Parse request body as JSON
-app.use(express.urlencoded({ extended: true }));
+//parse request body as JSON
+app.use(express.urlencoded({extended: true}));
 app.use(express.json());
-// Make public a static folder
-app.use(express.static("public"));
+//make public a static folder
+app.use (express.static("public"));
 
 // Connect to the Mongo DB
-mongoose.connect("mongodb://localhost/unit18KingArthurFlour", { useNewUrlParser: true });
+mongoose.connect("mongodb://localhost/unit18KingArthurFlour", {useNewUrlParser: true});
+
 
 // Routes
 
 // A GET route for scraping the echoJS website
-//A get route for scaping 
-app.get("/scrape", function(req, res) {
-  //First we grab the body of the html with axios
-  axios.get("https://www.kingarthurflour.com/recipes/").then(function (response) {
-    //the we load that into cheerio and save it to $ for a shorthand selector
-    var $ = cheerio.load(response.data);
+app.get("/scrape", function (req, res) {
+  //first, we grab the body of the html with axios
+  axios.get("https://www.kingarthurflour.com/recipes/").then(function(response) {
+    //Then, we load that into cheerio and save it to $ for a shorthand selector
+    var $ = cheerio.load(respons.data);
     const recipeArr = [];
-    // now we grab every li recipe-toprated-li tag, and do the folowing:
-    $("recipe-curated-li").each(function (i, element) {
-      //Save an empty result obleject
+    //Now, we grab everh h2 within a recipe tag, and do the following:
+    $("recipe-curated-li").each(function(i, element) {
+      //save an empty result object
       var result = {};
 
-      // add the label, text and href of every link, and save them as properties of the result object
+      //Add the text and href of every link, and save them as properties of the result object
       result.title = $(this)
-        .children("a")
-        .find("h5")
-        .text();
-       result.link = $(this)
-       .children("a")
-       .attr("href");
+      .children("a")
+      .find("h5")
+      .text()
+      result.link = $(this)
+      .children("a")
+      .attr("href")
 
-       recipeArr.push(result);
-
+      recipeArr.push(result)
     });
 
     db.Recipe.create(recipeArr)
@@ -63,58 +58,58 @@ app.get("/scrape", function(req, res) {
       console.log(err);
       res.json(err);
     })
-
   });
 });
 
-// Route for getting all Articles from the db
-app.get("/recipes", function (req, res) {
-  // Grab every document in the Articles collection
-  db.Article.find({})
-    .then(function (dbArticle) {
-      // If we were able to successfully find Articles, send them back to the client
-      res.json(dbArticle);
-    })
-    .catch(function (err) {
-      // If an error occurred, send it to the client
-      res.json(err);
-    });
+//route for getting all recipes from the db
+app.get("/recipes", function(req, res) {
+  //grab every document in the recipes collection
+  db.Recipe.find({})
+  .then(function(dbRecipe) {
+    //if we were able to SUCCESSFULLY find recipes, send them back to the client
+    res.json(dbRecipe);
+  })
+  .catch(function(err) {
+    //if an error occurs :( send it to the client
+    res.json(err);
+  });
 });
 
-// Route for grabbing a specific Article by id, populate it with it's note
-app.get("/recipes/:id", function (req, res) {
-  // Using the id passed in the id parameter, prepare a query that finds the matching one in our db...
-  db.Article.findOne({ _id: req.params.id })
-    // ..and populate all of the notes associated with it
-    .populate("note")
-    .then(function (dbArticle) {
-      // If we were able to successfully find an Article with the given id, send it back to the client
-      res.json(dbArticle);
-    })
-    .catch(function (err) {
-      // If an error occurred, send it to the client
-      res.json(err);
-    });
+//route for grabbing a specific recipe by id, populate it with it's note
+app.get("/recipes/:id", function(req, res) {
+//use the id passin the id parameter, prepare a query that finds the matching one in db
+db.Recipe.findOne({_id: requ.prams.id})
+// and populate all of the notes associated with it
+.populate("note")
+.then(function(dbRecipe) {
+  //if we were able to find a recipe with the given id, send it back to the client
+  res.json(dbRecipe);
+})
+.catch(function(err) {
+  res.json(err);
+});
 });
 
-// Route for saving/updating an Article's associated Note
-app.post("/recipes/:id", function (req, res) {
-  // Create a new note and pass the req.body to the entry
+//route for saving/updating a recipe's associate Note
+app.post("/recipes/:id", function(req, res) {
+  //create a new note and pass the req,body to the entry
   db.Note.create(req.body)
-    .then(function (dbNote) {
-      return db.Article.findOneAndUpdate({ _id: req.params.id }, { note: dbNote._id }, { new: true });
-    })
-    .then(function (dbArticle) {
-      // If we were able to successfully update an Article, send it back to the client
-      res.json(dbArticle);
-    })
-    .catch(function (err) {
-      // If an error occurred, send it to the client
-      res.json(err);
-    });
+  .then(function(dbNote) {
+    return db.Recipe.findOneAndUpdate({
+      _id: req.params.id}, {note: dbNote._id}, {new: true});
+  }).then(function(dbRecipe) {
+    //if we were able to update a recipe send it to the client
+    res.json(dbRecipe);
+  })
+  .catch(function(err) {
+    //if an error, send it the client
+    res.json(err);
+  });
 });
 
-// Start the server
-app.listen(PORT, function () {
-  console.log("App running on port " + PORT + "!");
+//start the server
+app.listen(PORT, function() {
+console.log("App running on port " + PORT + "!");
 });
+
+   
