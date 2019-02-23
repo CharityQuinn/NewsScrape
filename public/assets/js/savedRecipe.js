@@ -1,66 +1,65 @@
-$(document).ready(function() {
-  function getArticles() {
+$(document).ready(function () {
+  function getRecipes() {
     $.ajax({
-      method: 'GET',
-      url: '/articles'
-    }).then(function(dbArticles) {
-      dbArticles.forEach(article => {
-        $('<li>')
-          .addClass('list-group-item article')
-          .append(article.title)
-          .attr('data-id', article._id)
-          .appendTo($('#articles'));
+      method: "GET",
+      url: "/recipes"
+    }).then(function (dbRecipes) {
+      dbRecipes.forEach(recipe => {
+        $("<li>")
+          .addClass("list-group-item recipe")
+          .append(recipe.title)
+          .attr("data-id", recipe._id)
+          .appendTo($("#recipes"));
       });
     });
   }
 
-  $('#articles').on('click', '.article', function() {
+  $("recipes").on("click", function () {
 
-    const articleId = $(this).attr('data-id');
-    $('#note-title').val('');
-    $('#note-body').val('');
-    
-    $.ajax({
-      url: `/articles/${articleId}`,
-      method: 'GET'
-    }).then(function(articleData) {
-      console.log(articleData);
-      $('#submit-note').attr('data-id', articleData._id).attr("data-note-id", articleData.note._id);
-      $('#article-link')
-        .attr('href', articleData.link)
-        .text(articleData.title);
-      $('#note-body').val(articleData.note.body);
-      $('#note-title').val(articleData.note.title);
+    const recipeId = $(this).attr("data-id");
+    $("#note-title").val('');
+    $("#note-body").val('');
+
+    $ajax({
+      url: `/recipes/${recipeId}`,
+      method: "GET"
+    }).then(function (recipeData) {
+      console.log(recipeData);
+      $("#submit-note").attr("data-id", recipeData._id).attr("data-note-id", recipeDate.note._id);
+      $("recipe-link")
+        .attr("href", recipeData.link)
+        .text(recipeData.title);
+      $("note-body").val(recipeData.note.body);
+      $("#note-title").val(recipeData.note.title)
     });
   });
 
-  $('#submit-note').on('click', function(e) {
+  $("#submit-note").on("click", function(e) {
     e.preventDefault();
 
-    const articleId = $(this).attr('data-id');
-    if (!articleId) {
+    const recipeId = $(this).attr("data-id");
+    if (!recipeId) {
       return false;
     }
-
     const noteData = {
-      title: $('#note-title')
-        .val()
-        .trim(),
-      body: $('#note-body')
-        .val()
-        .trim()
+      title: $("#note-title")
+      .val()
+      .trim(),
+      body: $("#note-body")
+      .val()
+      .trim()
     };
 
     $.ajax({
-      url: `/articles/${articleId}`,
-      method: 'POST',
-      data: noteData
+      url: `/recipes/${recipeId}`,
+      method: "POST",
+      data: recipeData
     }).then(function(data) {
       console.log(data);
-      $('#note-title').val('');
-      $('#note-body').val('');
+      $("#note-title").val('');
+      $("#note-body").val('');
     });
   });
 
-  getArticles();
+  getRecipes();
 });
